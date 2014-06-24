@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">InAppPurchaseExample</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="showItemsButton">Show Items</string>
+    <string name="buyTextView">Would you like to buy anything?</string>
+    <string name="buy_button">Buy</string>
+    <string name="showPriceButton">Show Price</string>
+    <string name="successful_purchase">You purchased item</string>
+    <string name="inventoryTextView">Inventory:</string>
+    <string name="consumeItemButton">Consume item</string>
+
+</resources>
