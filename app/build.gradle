@@ -1,15 +1,14 @@
 apply plugin: 'android'
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion "19.1.0"
-
+    compileSdkVersion 'Google Inc.:Google APIs:18'
+    buildToolsVersion '19.1.0'
     defaultConfig {
-        applicationId "com.gkartash.inapppurchaseexample"
+        applicationId 'com.gkartash.inapppurchaseexample'
         minSdkVersion 14
         targetSdkVersion 19
         versionCode 1
-        versionName "1.0"
+        versionName '1.0'
     }
     buildTypes {
         release {
@@ -17,10 +16,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
-
+    productFlavors {
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.google.android.gms:play-services:+'
+    compile files('libs/google-play-services.jar')
 }

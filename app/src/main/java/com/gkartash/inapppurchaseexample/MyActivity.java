@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +17,9 @@ import com.gkartash.inapppurchaseexample.util.IabHelper;
 import com.gkartash.inapppurchaseexample.util.IabResult;
 import com.gkartash.inapppurchaseexample.util.Inventory;
 import com.gkartash.inapppurchaseexample.util.Purchase;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +31,7 @@ public class MyActivity extends Activity {
 
     private static final String TAG = "MyActivity";
     private static final int PURCHASE_REQUEST_CODE = 123;
+    private static final String PREMIUM_SKU = "sku_no_ad";
 
     IabHelper mHelper;
     Spinner purchasesSpinner;
@@ -36,6 +41,8 @@ public class MyActivity extends Activity {
     String selectedItem;
     Activity mActivity;
     Inventory mInventory;
+    AdView adView;
+    LinearLayout adLinearLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +51,7 @@ public class MyActivity extends Activity {
         setContentView(R.layout.activity_my);
         mActivity = this;
         purchasesMap = new HashMap<String, String>();
-        purchasesMap.put("Gain Experience", "android.test.purchased");
-        purchasesMap.put("Happiness", "android.test.item_unavailable");
+        purchasesMap.put(getString(R.string.no_ad), PREMIUM_SKU);
         purchasesSpinner = (Spinner) findViewById(R.id.purchasesSpinner);
         purchasesSpinner.setVisibility(View.INVISIBLE);
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this,
@@ -65,6 +71,14 @@ public class MyActivity extends Activity {
         inventoryItemTextView = (TextView) findViewById(R.id.inventoryItemTextView);
         consumeItemButton = (Button) findViewById(R.id.consumeItemButton);
         consumeItemButton.setOnClickListener(consumeButtonListener);
+
+
+        adLinearLayout = (LinearLayout) findViewById(R.id.adLinearLayout);
+
+
+
+
+
 
 
 
@@ -97,6 +111,7 @@ public class MyActivity extends Activity {
             mHelper.dispose();
             mHelper = null;
         }
+        adView.destroy();
     }
 
     View.OnClickListener itemsButtonListener = new View.OnClickListener() {
@@ -123,7 +138,7 @@ public class MyActivity extends Activity {
         @Override
         public void onClick(View view) {
 
-            Log.d(TAG, "in showPriceOnClickListener");
+
 
             List<String> itemsList = new ArrayList<String>(purchasesMap.values());
             mHelper.queryInventoryAsync(true, itemsList, queryListener);
@@ -136,6 +151,8 @@ public class MyActivity extends Activity {
         public void onQueryInventoryFinished(IabResult result, Inventory inv) {
             if (result.isSuccess()) {
 
+                Log.d(TAG, "QueryInventoryFinished, success");
+
 
 
                 if (selectedItem != null) {
@@ -143,12 +160,17 @@ public class MyActivity extends Activity {
                     priceTextView.setText(itemPrice);
                 }
 
-                if (inv.hasPurchase("android.test.purchased")) {
+                if (inv.hasPurchase(PREMIUM_SKU)) {
                     consumeItemButton.setEnabled(true);
-                    inventoryItemTextView.setText("Experience");
+                    inventoryItemTextView.setText(getString(R.string.premium));
+
+                    if (adView != null) {
+                        adView.destroy();
+                    }
                 } else {
                     consumeItemButton.setEnabled(false);
                     inventoryItemTextView.setText("");
+                    startAd();
                 }
 
                 mInventory = inv;
@@ -205,7 +227,7 @@ public class MyActivity extends Activity {
         @Override
         public void onClick(View view) {
 
-            mHelper.consumeAsync(mInventory.getPurchase("android.test.purchased"),
+            mHelper.consumeAsync(mInventory.getPurchase(PREMIUM_SKU),
                     consumeFinishedListener);
 
         }
@@ -220,4 +242,33 @@ public class MyActivity extends Activity {
             }
         }
     };
+
+    private void startAd() {
+
+        adView = new AdView(this);
+        adView.setAdUnitId(getString(R.string.admob_id));
+        adView.setAdSize(AdSize.BANNER);
+        adLinearLayout.addView(adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (adView != null) {
+            adView.resume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (adView != null) {
+            adView.pause();
+        }
+    }
+
+
 }

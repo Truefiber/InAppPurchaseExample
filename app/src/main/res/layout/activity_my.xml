@@ -91,4 +91,14 @@
         android:text="@string/consumeItemButton"
         android:id="@+id/consumeItemButton"/>
 
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:id="@+id/adLinearLayout">
+    </LinearLayout>
+
+
 </LinearLayout>

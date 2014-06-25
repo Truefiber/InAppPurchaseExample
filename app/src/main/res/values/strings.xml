@@ -13,4 +13,8 @@
     <string name="inventoryTextView">Inventory:</string>
     <string name="consumeItemButton">Consume item</string>
 
+    <string name="no_ad">Get rid off that ad!</string>
+    <string name="premium">Premium account</string>
+    <string name="admob_id">ca-app-pub-4033069081235195/8092414667</string>
+
 </resources>
