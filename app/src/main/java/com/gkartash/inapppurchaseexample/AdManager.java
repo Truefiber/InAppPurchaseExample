@@ -1,9 +1,17 @@
 package com.gkartash.inapppurchaseexample;
 
 import android.content.Context;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
+
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.millennialmedia.android.MMAdView;
+import com.millennialmedia.android.MMRequest;
+import com.millennialmedia.android.MMSDK;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -33,6 +41,13 @@ public class AdManager {
     private static final String ADMOB = "AdMob";
     private static final String MILLENIUM = "MM";
 
+    private static final String EVENT_PUBLISHER_ID = "publisherid";
+    private static final String EVENT_AD_NETWORK = "adnetwork";
+
+    private String currentNetwork;
+
+    LocationValet locationValet;
+
 
     private Context adContext;
     private OnInitCompletedListener initListener;
@@ -61,10 +76,14 @@ public class AdManager {
     }
 
     public void pause() {
+        locationValet.stopAquire();
 
     }
 
     public void resume() {
+
+        locationValet.startAquire(true);
+
 
     }
 
@@ -127,17 +146,22 @@ public class AdManager {
             int eventType = parser.getEventType();
 
             while (eventType != XmlPullParser.END_DOCUMENT) {
-                if(eventType == XmlPullParser.START_DOCUMENT) {
-                    Log.d(TAG, "Start document");
-                } else if(eventType == XmlPullParser.START_TAG) {
-                    Log.d(TAG, "Start tag "+parser.getName());
-                } else if(eventType == XmlPullParser.END_TAG) {
-                    Log.d(TAG, "End tag "+parser.getName());
-                } else if(eventType == XmlPullParser.TEXT) {
-                    Log.d(TAG, "Text "+parser.getText());
+                if (eventType == XmlPullParser.START_TAG) {
+                    if (parser.getName().equals(EVENT_AD_NETWORK)) {
+                        parser.next();
+                        createAdvertisement(parser.getText());
+
+                    } else if (parser.getName().equals(EVENT_PUBLISHER_ID)) {
+                        parser.next();
+                        setupID(parser.getText());
+                    }
                 }
+
+
                 eventType = parser.next();
             }
+
+            finalizeAdvertisement();
 
 
         } catch (FileNotFoundException e) {
@@ -148,8 +172,56 @@ public class AdManager {
             e.printStackTrace();
         }
 
-        return null;
+        return advertisement;
 
 
+    }
+
+    private void createAdvertisement(String network) {
+        if (network.equals(ADMOB)) {
+
+            currentNetwork = ADMOB;
+
+            advertisement = new AdView(adContext);
+
+        } else if (network.equals(MILLENIUM)) {
+
+            currentNetwork = MILLENIUM;
+
+            MMSDK.initialize(adContext);
+            locationValet = new LocationValet(adContext, new LocationValet.ILocationValetListener() {
+                @Override
+                public void onBetterLocationFound(Location l) {
+                    MMRequest.setUserLocation(l);
+                }
+            });
+
+            advertisement = new MMAdView(adContext);
+        }
+    }
+
+    private void setupID(String publisherID) {
+        if (currentNetwork.equals(ADMOB)) {
+            ((AdView)advertisement).setAdUnitId(publisherID);
+        } else if (currentNetwork.equals(MILLENIUM)) {
+            ((MMAdView)advertisement).setApid(publisherID);
+        }
+    }
+
+    private void finalizeAdvertisement() {
+
+
+
+    }
+
+    public void load() {
+        if (currentNetwork.equals(ADMOB)) {
+            AdRequest request = new AdRequest.Builder().build();
+            ((AdView)advertisement).loadAd(request);
+
+        } else if (currentNetwork.equals(MILLENIUM)) {
+            ((MMAdView)advertisement).getAd();
+
+        }
     }
 }
