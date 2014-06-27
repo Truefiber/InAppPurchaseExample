@@ -20,6 +20,7 @@ import com.gkartash.inapppurchaseexample.util.Purchase;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
+import com.millennialmedia.android.MMSDK;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,6 +75,16 @@ public class MyActivity extends Activity {
 
 
         adLinearLayout = (LinearLayout) findViewById(R.id.adLinearLayout);
+
+        new AdManager(this, "https://www.dropbox.com/s/l5qtpcrryuistpk/Adtest.xml?dl=1")
+                .initAsync(new AdManager.OnInitCompletedListener() {
+            @Override
+            public void onInitCompleted(View advertisement) {
+
+            }
+        });
+
+
 
 
 
