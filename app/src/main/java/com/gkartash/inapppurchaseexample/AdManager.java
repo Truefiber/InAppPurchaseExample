@@ -3,11 +3,14 @@ package com.gkartash.inapppurchaseexample;
 import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 
 
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.millennialmedia.android.MMAdView;
 import com.millennialmedia.android.MMRequest;
@@ -18,13 +21,11 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -39,10 +40,11 @@ public class AdManager {
     private final String XML_SETTINGS_URL;
     private static final String SETTINGS_FILENAME = "AdManagerSettings";
     private static final String ADMOB = "AdMob";
-    private static final String MILLENIUM = "MM";
+    private static final String MILLENIAL = "MM";
 
     private static final String EVENT_PUBLISHER_ID = "publisherid";
     private static final String EVENT_AD_NETWORK = "adnetwork";
+    private static final String EVENT_AD_SIZE = "adsize";
 
     private String currentNetwork;
 
@@ -52,6 +54,7 @@ public class AdManager {
     private Context adContext;
     private OnInitCompletedListener initListener;
     private View advertisement;
+    private AdSetup adSetup;
 
     public AdManager(Context context, String settingsUrl) {
         adContext = context;
@@ -61,7 +64,8 @@ public class AdManager {
 
     public void initAsync(OnInitCompletedListener listener) {
         initListener = listener;
-        new AdSetup().execute();
+        adSetup = new AdSetup();
+        adSetup.execute();
 
     }
 
@@ -73,16 +77,42 @@ public class AdManager {
 
     public void destroy() {
 
+        if (adSetup != null) {
+            adSetup.cancel(true);
+        }
+
+        if (currentNetwork == null)
+            return;
+        if (currentNetwork.equals(ADMOB)) {
+            ((AdView)advertisement).destroy();
+        }
+
     }
 
     public void pause() {
-        locationValet.stopAquire();
+        if (currentNetwork == null)
+            return;
+        if (currentNetwork.equals(ADMOB)) {
+            ((AdView)advertisement).pause();
+        } else if (currentNetwork.equals(MILLENIAL)) {
+            locationValet.stopAquire();
+
+        }
 
     }
 
     public void resume() {
 
-        locationValet.startAquire(true);
+        if (currentNetwork == null)
+            return;
+
+        if (currentNetwork.equals(ADMOB)) {
+            ((AdView)advertisement).resume();
+        } else if (currentNetwork.equals(MILLENIAL)) {
+
+            locationValet.startAquire(true);
+
+        }
 
 
     }
@@ -91,16 +121,21 @@ public class AdManager {
 
         @Override
         protected View doInBackground(Void... voids) {
+            Looper.prepare();
             requestXML();
-            parseXML();
+
             return parseXML();
         }
 
         @Override
         protected void onPostExecute(View ad) {
-            advertisement = ad;
+
             initListener.onInitCompleted(ad);
+            load();
         }
+
+
+
     }
 
     private void requestXML() {
@@ -153,7 +188,10 @@ public class AdManager {
 
                     } else if (parser.getName().equals(EVENT_PUBLISHER_ID)) {
                         parser.next();
-                        setupID(parser.getText());
+                        setID(parser.getText());
+                    } else if (parser.getName().equals(EVENT_AD_SIZE)) {
+                        parser.next();
+                        setSize(parser.getText());
                     }
                 }
 
@@ -184,9 +222,10 @@ public class AdManager {
 
             advertisement = new AdView(adContext);
 
-        } else if (network.equals(MILLENIUM)) {
 
-            currentNetwork = MILLENIUM;
+        } else if (network.equals(MILLENIAL)) {
+
+            currentNetwork = MILLENIAL;
 
             MMSDK.initialize(adContext);
             locationValet = new LocationValet(adContext, new LocationValet.ILocationValetListener() {
@@ -197,15 +236,29 @@ public class AdManager {
             });
 
             advertisement = new MMAdView(adContext);
+
         }
     }
 
-    private void setupID(String publisherID) {
+    private void setID(String publisherID) {
         if (currentNetwork.equals(ADMOB)) {
             ((AdView)advertisement).setAdUnitId(publisherID);
-        } else if (currentNetwork.equals(MILLENIUM)) {
+        } else if (currentNetwork.equals(MILLENIAL)) {
             ((MMAdView)advertisement).setApid(publisherID);
+            ((MMAdView)advertisement).setMMRequest(new MMRequest());
         }
+    }
+
+    private void setSize(String adSize) {
+        if (currentNetwork.equals(ADMOB)) {
+
+            if (adSize.equals("BANNER")) {
+
+                ((AdView)advertisement).setAdSize(AdSize.BANNER);
+
+            }
+        }
+
     }
 
     private void finalizeAdvertisement() {
@@ -219,7 +272,8 @@ public class AdManager {
             AdRequest request = new AdRequest.Builder().build();
             ((AdView)advertisement).loadAd(request);
 
-        } else if (currentNetwork.equals(MILLENIUM)) {
+        } else if (currentNetwork.equals(MILLENIAL)) {
+            (((MMAdView)advertisement)).setId(MMSDK.getDefaultAdId());
             ((MMAdView)advertisement).getAd();
 
         }

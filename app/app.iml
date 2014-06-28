@@ -61,9 +61,9 @@
     </content>
     <orderEntry type="jdk" jdkName="Android 4.3 Google APIs" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="MMSDK" level="project" />
-    <orderEntry type="library" exported="" name="play-services-4.4.52" level="project" />
     <orderEntry type="library" exported="" name="support-v4-19.0.1" level="project" />
+    <orderEntry type="library" exported="" name="play-services-4.4.52" level="project" />
+    <orderEntry type="library" exported="" name="MMSDK" level="project" />
     <orderEntry type="library" exported="" name="google-play-services" level="project" />
   </component>
 </module>

@@ -42,8 +42,9 @@ public class MyActivity extends Activity {
     String selectedItem;
     Activity mActivity;
     Inventory mInventory;
-    AdView adView;
+
     LinearLayout adLinearLayout;
+    AdManager adManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,13 +77,15 @@ public class MyActivity extends Activity {
 
         adLinearLayout = (LinearLayout) findViewById(R.id.adLinearLayout);
 
-        new AdManager(this, "https://www.dropbox.com/s/l5qtpcrryuistpk/Adtest.xml?dl=1")
-                .initAsync(new AdManager.OnInitCompletedListener() {
+        adManager = new AdManager(this, "https://www.dropbox.com/s/fcwgbdvkuqgd0gk/AdtestMM.xml?dl=1");
+        adManager.initAsync(new AdManager.OnInitCompletedListener() {
             @Override
             public void onInitCompleted(View advertisement) {
+                adLinearLayout.addView(advertisement);
 
             }
         });
+
 
 
 
@@ -122,7 +125,7 @@ public class MyActivity extends Activity {
             mHelper.dispose();
             mHelper = null;
         }
-        adView.destroy();
+        adManager.destroy();
     }
 
     View.OnClickListener itemsButtonListener = new View.OnClickListener() {
@@ -175,8 +178,8 @@ public class MyActivity extends Activity {
                     consumeItemButton.setEnabled(true);
                     inventoryItemTextView.setText(getString(R.string.premium));
 
-                    if (adView != null) {
-                        adView.destroy();
+                    if (adManager != null) {
+                        adManager.destroy();
                     }
                 } else {
                     consumeItemButton.setEnabled(false);
@@ -256,29 +259,20 @@ public class MyActivity extends Activity {
 
     private void startAd() {
 
-        adView = new AdView(this);
-        adView.setAdUnitId(getString(R.string.admob_id));
-        adView.setAdSize(AdSize.BANNER);
-        adLinearLayout.addView(adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        adView.loadAd(adRequest);
+        //adManager.load();
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (adView != null) {
-            adView.resume();
-        }
+        adManager.resume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (adView != null) {
-            adView.pause();
-        }
+        adManager.pause();
     }
 
 
